@@ -1,3 +1,7 @@
+from pprint import pprint
+bookstore_url = 'https://northwestern.bncollege.com/shop/northwestern/page/find-textbooks'
+all_books = []
+
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
@@ -5,7 +9,9 @@ import sys
 import time
 from random import randint
 
-bookstore_url = "http://carleton.bncollege.com/webapp/wcs/stores/servlet/TBWizardView?catalogId=10001&langId=-1&storeId=87738"
+# bookstore_url = "http://carleton.bncollege.com/webapp/wcs/stores/servlet/TBWizardView?catalogId=10001&langId=-1&storeId=87738"
+
+
 
 browser = None
 
@@ -16,7 +22,8 @@ def new_browser():
   opts = webdriver.chrome.options.Options()
   # switch numbers in this around to get past rate limiting
   opts.add_argument("user-agent=Mozilla/{}.{} (Macintosh; Intel Mac OS X 10.{}; rv:{}.0) Gecko/20100101 Firefox/57.0".format(randint(1,9), randint(1,9), randint(1,15), randint(40,60)))
-  browser = webdriver.Chrome(chrome_options=opts)
+  browser = webdriver.Chrome(chrome_options=opts,executable_path='C:/Users/changd/Downloads/chromedriver_win32/chromedriver.exe')
+
   time.sleep(3)
 
 new_browser()
@@ -91,7 +98,13 @@ def get_books_for_class(lookup_path):
   for book_el in browser.find_elements_by_class_name('book-list'):
     book_data = {}
     book_data["title"] = book_el.find_element_by_css_selector('h1 a').text
-    book_data["author"] = book_el.find_element_by_css_selector('h2 i').text
+
+    try:
+        book_data["author"] = book_el.find_element_by_css_selector('h2 i').text
+    except:
+        book_data["author"] = ""
+        continue
+
     book_data["edition"] = ""
     book_data["isbn"] = ""
     for strong in book_el.find_elements_by_css_selector('strong'):
@@ -101,6 +114,7 @@ def get_books_for_class(lookup_path):
         book_data["edition"] = strong.find_element_by_xpath('..').text
     books.append(book_data)
     print("^".join(lookup_path + list(book_data.values())))
+    all_books.append(book_data)
   return books
 
 def get_all_books(data, path=[]):
@@ -114,13 +128,56 @@ def get_all_books(data, path=[]):
 # uncomment this to get a print-out of all classes
 # get_classes()
 
+
+
 # uncomment this to get actual class book data
 # put output from above command into string to get it out
-# classes = """
-# AFST 112 0
-# AMST 234 0
-# AMST 345 0
-# ARBC 102 0
-# """.strip().split('\n')
-# for c in classes:
-#   get_books_for_class(c.split(' '))
+
+classes = """
+CHEM    110-0   ALL
+CHEM    151-0   ALL
+CHEM    161-0   ALL
+CHEM    171-0   ALL
+CHEM    181-0   ALL
+CHEM    210-1   ALL
+CHEM    212-1   ALL
+CHEM    232-1   ALL
+CIV_ENV 216-0   ALL
+COMP_ENG        203-0   ALL
+COMP_SCI        111-0   ALL
+COMP_SCI        211-0   ALL
+COMP_SCI        214-0   ALL
+DSGN    106-1   ALL
+ECON    201-0   20
+ECON    201-0   40
+ECON    202-0   20
+ECON    281-0   ALL
+ECON    310-1   ALL
+ECON    310-2   ALL
+ECON    311-0   ALL
+ELEC_ENG        202-0   ALL
+ES_APPM 252-1   ALL
+GEN_ENG 205-1   ALL
+GEN_ENG 205-3   ALL
+MATH    214-0   ALL
+MATH    218-1   ALL
+MATH    220-1   ALL
+MATH    220-2   ALL
+MATH    226-0   ALL
+MATH    228-1   ALL
+MATH    228-2   ALL
+MATH    230-1   ALL
+MATH    234-0   ALL
+MAT_SCI 201-0   ALL
+MAT_SCI 301-0   ALL
+PHYSICS 130-1   ALL
+PHYSICS 135-1   ALL
+PHYSICS 135-2   ALL
+STAT    202-0   ALL
+STAT    210-0   ALL
+""".strip().split('\n')
+classes = [" ".join(course.split()) for course in classes]
+for c in classes:
+  get_books_for_class(c.split(' '))
+
+pprint(all_books)
